@@ -163,6 +163,8 @@ int main()
 
 ```
 ## Ejercicio 4 del boletin de clase (VECTORES)
+
+!! A pesar de usar la solución del profe, no me da los valores que tienen que dar
 Codifica herramientas para el manejo de puntos y vectores en
 Se dispondrá de las siguientes operaciones:
 - módulo de un vector
