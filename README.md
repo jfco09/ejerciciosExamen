@@ -849,3 +849,181 @@ int main()
 }
 
 ```
+## Ejercicio 34
+Implementar el filtro butter usando clases declaradas en un archivo filtrobutter.h y programando la funcionalidad en filtrobutter.cpp
+
+filtrobutter.h
+
+```c
+
+#ifndef FILTROBUTTER_H
+#define FILTROBUTTER_H
+
+
+class FiltroButter
+{
+private:
+    float y[6];
+    float u[6];
+public:
+    FiltroButter();
+    float filtrar(float *señal);
+};
+
+#endif // FILTROBUTTER_H
+
+
+```
+filtrobutter.cpp:
+
+```c
+#include "filtrobutter.h"
+
+FiltroButter::FiltroButter(){};
+
+float FiltroButter::filtrar(float *señal){
+    for(int i = 0; i < 5; i++){
+        y[i] = y[i + 1];
+        u[i] = u[i + 1];
+    }
+    u[5] = * señal;
+
+    y[5] = 2.9754 * y[4] - 3.8060 * y[3] + 2.5453 * y[2] - 0.8811 * y[1] + 0.1254*y[0]  + 0.0013 * u[5] + 0.0064 * u[4] + 0.0128 * u[3] + 0.0128 * u[2] + 0.0064 * u[1] + 0.0013 * u[0];
+
+    return y[5];
+}
+
+```
+
+
+main.cpp:
+```c
+#include <iostream>
+#include "filtrobutter.h"
+using namespace std;
+
+void arrancaTemporizador(int s, int ns);
+float mideSenal();
+void esperaTemporizador();
+void borraPantalla();
+void dibujaLinea(int x1, int y1, int x2, int y2);
+
+int main()
+{
+    float ys[4000] = {};
+    float señal ;
+    FiltroButter filtro;
+    arrancaTemporizador(0,1000000);
+    int nPeriodos = 0;
+    int nPuntos = 0;
+    while(1){
+        señal = mideSenal();
+        for(int i  = 0; i < 3999; i++  ){
+            ys[i] = ys[i +1];
+        }
+        ys[3999] = filtro.filtrar( & señal);
+
+        if(nPeriodos == 2000 && nPuntos < 4000){
+            nPeriodos = 0;
+            borraPantalla();
+            for(int i  = 0; i < 3998; i++  ){
+
+                dibujaLinea(i * 1023/3999, (ys[i] + 3) *(717 - 50)/6 + 50,(i +1) * 1023/3999 ,(ys[i + 1] + 3) *(717 - 50)/6 + 50) ;
+            }
+
+
+        }
+
+        nPuntos++;
+        esperaTemporizador();
+        nPeriodos++;
+    }
+
+
+    return 0;
+}
+
+
+```
+
+## Ejercicio 5
+Autoajustado de un PID
+```c
+#include <stdio.h>
+#include <math.h>
+unsigned int MS = 0;
+double entradaAnalogica(int nEntrada);
+void salidaAnalogica(double valor);
+
+void autotuning(double D, float * Kp, float * Ki, float *Kd){
+    int ajustado = 0;
+
+    salidaAnalogica(D);
+    while(entradaAnalogica(1) < 0.5);
+    salidaAnalogica(-D);
+    float P[5] = {};
+    float A[5] = {};
+    float mediaP, mediaA;
+    int nValores = 0;
+
+    while(!ajustado){
+        MS = 0;
+        nValores ++;
+        float maximo = 0;
+        while(entradaAnalogica(1) > 0){
+            if(entradaAnalogica(1) > maximo){
+                maximo = entradaAnalogica(1);
+
+            }
+        }
+        salidaAnalogica(D);
+
+        float minimo = 0;
+        while(entradaAnalogica(1) < 0){
+            if(entradaAnalogica(1) < minimo){
+                minimo = entradaAnalogica(1);
+            }
+        }
+        salidaAnalogica(-D);
+
+        for(int i = 0; i < 4; i++){
+            P[i] = P[i + 1];
+            A[i] = A[i + 1];
+        }
+        P[4] = MS;
+        A[4] = maximo - minimo;
+        if (nValores > 5){
+            for( int i = 0; i < 5; i++ ){
+                mediaP += P[i];
+                mediaA += A[i];
+            }
+            mediaP /= 5.0;
+            mediaA /= 5.0;
+
+            ajustado = 1;
+            for(int i = 0; i < 5; i++){
+                if(fabs(P[i] - mediaP) > 0.02 || fabs(A[i] - mediaA) > 0.02 ){
+                    ajustado = 0;
+                }
+            }
+
+        }
+
+    }
+    float Ku = 4 * D / 3.14 * mediaA;
+    *Kp = 0.6 * Ku;
+    *Ki = 1.2 * Ku/ mediaP;
+    *Kd = 0.075 * Ku;
+
+}
+
+int main()
+{
+    float Kp, Ki, Kd;
+    autotuning(5, &Kp, &Ki, &Kd );
+
+    return 0;
+}
+
+
+```
