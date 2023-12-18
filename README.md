@@ -854,7 +854,7 @@ Implementar el filtro butter usando clases declaradas en un archivo filtrobutter
 
 filtrobutter.h
 
-```c
+```cpp
 
 #ifndef FILTROBUTTER_H
 #define FILTROBUTTER_H
@@ -876,7 +876,7 @@ public:
 ```
 filtrobutter.cpp:
 
-```c
+```cpp
 #include "filtrobutter.h"
 
 FiltroButter::FiltroButter(){};
@@ -897,7 +897,7 @@ float FiltroButter::filtrar(float *señal){
 
 
 main.cpp:
-```c
+```cpp
 #include <iostream>
 #include "filtrobutter.h"
 using namespace std;
