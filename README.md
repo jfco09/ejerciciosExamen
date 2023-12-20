@@ -1027,3 +1027,202 @@ int main()
 
 
 ```
+## Ejercicio 8 El filtro de Kuwahara
+
+```c
+#include <stdio.h>
+#include <stdint.h>
+#include <math.h>
+
+//Variables globales
+
+//Imagen sin filtrar (se supone que nos lo dan)
+uint8_t imagen[];
+//Variables que guardan el alto y ancho de la imagen (se supone que nos lo dan)
+int ancho;
+int alto;
+//Grado del filtro (se supone que nos lo dan)
+int L;
+
+void calcularSector(int filai, int filaf,int columnai, int columnaf, double *desviacion, double * media){
+    //Inicializa la suma y el nº de puntos
+    double suma = 0 ;
+    int nPuntos = 0;
+
+    //Recorre al ventana sumando los valores
+    for(int fi = filai; fi <= filaf; fi++ ){
+        for(int ci = columnai; ci <= columnaf; ci++ ){
+            suma += imagen[fi * alto + ci * ancho];
+            nPuntos ++;
+        }
+    }
+    //Calcula la media y lo guarda en el puntero media
+    *media = suma / nPuntos;
+    //Restablece la suma
+    suma = 0.0;
+    //Calcula el sumatorio para calcular luego la desviacion tipica
+    for(int fi = filai; fi <= filaf; fi++ ){
+        for(int ci = columnai; ci <= columnaf; ci++ ){
+            suma += (imagen[fi * alto + ci * ancho] - *media) * (imagen[fi * alto + ci * ancho] - *media);
+        }
+    }
+    //Calcula la desviacion tipica total del sector y lo almacena en el puntero
+    *desviacion = sqrt( ( 1 / (nPuntos - 1) )  * suma);
+}
+
+int main()
+{
+    //Imagen donde guardo los valores filtrados, mismo tamaño que imagen original
+    uint8_t imagenFiltrada[ancho * alto];
+
+    //Bucle que recorre todos los pixeles de la imagen
+    for(int f = 0;f < alto; f++){
+        for(int c = 0; c < ancho; c++){
+            //Para cada inicializa dos matrices para guardar los valores de desviacion y media de cada sector
+            double desviaciones[4];
+            double medias[4];
+
+            //No estoy en ningun borde
+            if( (-2 * L + f) >= 0 && (2 * L + f) <= alto &&  (-2 * L + c) >= 0 && (2 * L + f) <= ancho ){
+
+                //LLamada a la funcion para calcular cada sector
+                //Sector1: de (-2L+f, -2L+c) -> (f,c)
+                calcularSector(-2 * L + f, f, -2 * L + c, c, &desviaciones[0], &medias[0]);
+                //Sector2: de (-2L+f, c) -> (f,2L + c)
+                calcularSector(-2* L + f, f, c, 2* L + c, &desviaciones[1], &medias[1]);
+                //Sector3: de (f, c) -> (2L +f,2L + c)
+                calcularSector(f, 2* L + f, c,  2* L + c, &desviaciones[2], &medias[2]);
+                //Sector4: de (f, -2L +c) -> (2L +f, c)
+                calcularSector(f, 2* L + f, -2* L + c,  c, &desviaciones[3], &medias[3]);
+
+                //Busco la desviacion minima de los sectores y me quedo con el indice
+                int imin= 0;
+                for(int i = 0; i < 4; i++){
+                    if(desviaciones[i] < desviaciones[imin] ){
+                        imin = i;
+                    }
+                }
+                //Guardo en la imagen filtrada la media del sector con la minima desviacion tipica (habria que pasarlo a un entero de 8 bits que no se como se hace)
+                imagenFiltrada[f * alto + c * ancho] = medias[imin];
+
+            }
+
+
+            //Comrpuebo si estoy en la banda superior de la imagen (no puedo calcular ni el sector 1 ni el 2)
+            if((-2 * L + f) < 0){
+                if((-2 * L + c) < 0){
+
+                    //Estoy en la esquina superior izq solo sector 3
+                    //Sector3: de (f, c) -> (2L +f,2L + c)
+                    calcularSector(f, 2* L + f, c,  2* L + c, &desviaciones[2], &medias[2]);
+                    imagenFiltrada[f * alto + c * ancho] =  medias[2];
+
+                }
+                if((2 * L + c) > ancho){
+                    //Estoy en la esquina superior dcha solo sector 4
+                    //Sector4: de (f, -2L +c) -> (2L +f, c)
+                    calcularSector(f, 2* L + f, -2* L + c,  c, &desviaciones[3], &medias[3]);
+                    imagenFiltrada[f * alto + c * ancho] =  medias[3];
+
+                }
+
+                if((-2 * L + c) >= 0 &&(2 * L + c) <= ancho){
+                    //No esta en esquinas
+                    //Sector3: de (f, c) -> (2L +f,2L + c)
+                    calcularSector(f, 2* L + f, c,  2* L + c, &desviaciones[2], &medias[2]);
+                    //Sector4: de (f, -2L +c) -> (2L +f, c)
+                    calcularSector(f, 2* L + f, -2* L + c,  c, &desviaciones[3], &medias[3]);
+
+                    //Busco la desviacion minima de los sectores y me quedo con el indice
+                    int imin= 2;
+                    for(int i = 2; i < 4; i++){
+                        if(desviaciones[i] < desviaciones[imin] ){
+                            imin = i;
+                        }
+                    }
+                    //Guardo en la imagen filtrada la media del sector con la minima desviacion tipica (habria que pasarlo a un entero de 8 bits que no se como se hace)
+                    imagenFiltrada[f * alto + c * ancho] = medias[imin];
+
+                }
+            }
+            //Compruebo que estoy en la banda inferior (no se puede calcular ni S3 ni S4)
+            if((2 * L + f) > alto){
+                if((-2 * L + c) < 0){
+                    //Estoy en la esquina inferior izq solo sector 2
+                    //Sector2: de (-2L+f, c) -> (f,2L + c)
+                    calcularSector(-2* L + f, f, c, 2* L + c, &desviaciones[1], &medias[1]);
+                    imagenFiltrada[f * alto + c * ancho] =  medias[1];
+                }
+                if((2 * L + c) > ancho){
+                    //Estoy en la esquina inferior dcha solo sector 1
+                    //Sector1: de (-2L+f, -2L+c) -> (f,c)
+                    calcularSector(-2 * L + f, f, -2 * L + c, c, &desviaciones[0], &medias[0]);
+                    imagenFiltrada[f * alto + c * ancho] =  medias[0];
+
+                }
+                if((-2 * L + c) >=  0 && (2 * L + c) <= ancho){
+                    //No esta en esquinas
+                    //Sector1: de (-2L+f, -2L+c) -> (f,c)
+                    calcularSector(-2 * L + f, f, -2 * L + c, c, &desviaciones[0], &medias[0]);
+                    //Sector2: de (-2L+f, c) -> (f,2L + c)
+                    calcularSector(-2* L + f, f, c, 2* L + c, &desviaciones[1], &medias[1]);
+
+                    //Busco la desviacion minima de los sectores y me quedo con el indice
+                    int imin= 0;
+                    for(int i = 0; i < 2; i++){
+                        if(desviaciones[i] < desviaciones[imin] ){
+                            imin = i;
+                        }
+                    }
+                    //Guardo en la imagen filtrada la media del sector con la minima desviacion tipica (habria que pasarlo a un entero de 8 bits que no se como se hace)
+                    imagenFiltrada[f * alto + c * ancho] = medias[imin];
+
+                }
+
+            }
+            //Compruebo si estoy en la banda izq
+            if((-2 * L + c) < 0){
+                //Me olvido de las esquinas las calculo por las filas
+                if((-2 * L + f) >= 0 && (2 * L + f) <= alto){
+                    //Sector2: de (-2L+f, c) -> (f,2L + c)
+                    calcularSector(-2* L + f, f, c, 2* L + c, &desviaciones[1], &medias[1]);
+                    //Sector3: de (f, c) -> (2L +f,2L + c)
+                    calcularSector(f, 2* L + f, c,  2* L + c, &desviaciones[2], &medias[2]);
+
+                    //Busco la desviacion minima de los sectores y me quedo con el indice
+                    int imin= 1;
+                    for(int i = 1; i < 3; i++){
+                        if(desviaciones[i] < desviaciones[imin] ){
+                            imin = i;
+                        }
+                    }
+                    imagenFiltrada[f * alto + c * ancho] = medias[imin];
+                }
+            }
+            if((2 * L + c) <= ancho){
+                //Me olvido de las esquinas las calculo por las filas
+                if((-2 * L + f) >= 0 && (2 * L + f) <= alto){
+                    //Sector2: de (-2L+f, c) -> (f,2L + c)
+                    calcularSector(-2* L + f, f, c, 2* L + c, &desviaciones[1], &medias[1]);
+                    //Sector3: de (f, c) -> (2L +f,2L + c)
+                    calcularSector(f, 2* L + f, c,  2* L + c, &desviaciones[2], &medias[2]);
+
+                    //Busco la desviacion minima de los sectores y me quedo con el indice
+                    int imin= 1;
+                    for(int i = 1; i < 3; i++){
+                        if(desviaciones[i] < desviaciones[imin] ){
+                            imin = i;
+                        }
+                    }
+                    imagenFiltrada[f * alto + c * ancho] = medias[imin];
+                }
+            }
+        }
+
+    }
+
+    return 0;
+}
+
+
+```
