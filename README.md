@@ -446,15 +446,9 @@ int interruptor(){};
 
 //Creacion de clase Temporizador
 class Temporizador {
-private:
-    //Parametro t lleva el periodo )
-    int t;
 public:
     //Constructor de la clase
-    Temporizador(int periodo) {
-        //Actualiza el valor de t
-        t = periodo;
-    }
+    Temporizador(int t) {};
 
     //Funcion que realiza la espera
     void espera(){
