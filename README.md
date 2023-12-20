@@ -1226,3 +1226,56 @@ int main()
 
 
 ```
+## Ejercicio17 filtro Savitzky-Golay
+
+```c
+#include <stdio.h>
+
+int ventana;
+double y[]; //Mi señal
+double yk []; //Salida
+int N;
+int main()
+{
+    if (ventana == 5){
+        //Para los primeros valores la señal filtrada es igual a la original
+        yk [0] = y[0];
+        yk [0] = y[0];
+        for(int i = 2; i < N - 2; i++){
+            yk [i] = 1/35 * ( - 3 * y[i -2] + 12 * y[i -1] +17 * y[i] +12 * y[i + 1] - 3 * y[i +2]);
+        }
+        //A partir de N-2 la señal filtrada es igual a la original
+        yk [N-2] = y[N-2];
+        yk [N-1] = y[N-1];
+    }
+    if (ventana == 7){
+        for(int i = 0; i <3; i++ ){
+            yk [i] = y[i];
+        }
+        for(int i = 3; i < N - 3; i++){
+            yk [i] = 1/21 * (-2 * y[i-3] + 3 * y[i-2] + 6 * y[i-1] + 7 * y[i] -2 * y[i+3] + 3 * y[i+2] + 6 * y[i+1]);
+        }
+        for(int i = N - 3; i < N; i++ ){
+            yk [i] = y[i];
+        }
+
+
+    }
+    if (ventana == 9){
+        for(int i = 0; i < 4; i++ ){
+            yk [i] = y[i];
+        }
+        for(int i = 4; i < N - 4; i++){
+            yk[i] = 1/231 * ( -21 * y[i - 4] + 14 * y[i - 3] + 39 * y[i - 2] + 54* y[i - 1] + 59 * y[i]  -21 * y[i + 4] + 14 * y[i + 3] + 39 * y[i + 2] + 54* y[i + 1]);
+        }
+        for(int i = N - 4; i < N; i++ ){
+            yk [i] = y[i];
+        }
+
+    }
+
+
+    return 0;
+}
+
+```
