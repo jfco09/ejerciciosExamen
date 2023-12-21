@@ -690,7 +690,7 @@ int main()
             primera = 0;
         }
         //Compara maquinas libres para encontrar la que menor ordenes tenga
-        if(libres[i] == 1 && primera != 0){
+        if(libres[i] == 1 && primera == 0){
             if(ordenes[i] < ordenes[maquina]){
                 maquina = i;
             }
