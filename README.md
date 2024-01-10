@@ -1273,3 +1273,111 @@ int main()
 }
 
 ```
+## Ejercicio 20
+regulador.h:
+```cpp
+#ifndef REGULADOR_H
+#define REGULADOR_H
+
+
+class Regulador
+{
+private:
+    int N,M;
+    double *bi, *ai;
+    double *u, *e;
+public:
+    Regulador(int gradoM, int gradoN, double * bcoef, double *acoef);
+    double actuacion(double entrada);
+    //El destructor lo creo pq aparece en la solución
+    ~Regulador();
+};
+
+#endif // REGULADOR_H
+```
+regulador.cpp:
+
+```cpp
+#include "regulador.h"
+//Constructor de la clase
+Regulador::Regulador(int gradoM, int gradoN, double * bcoef, double *acoef)
+{
+    //Asignar variables externas a las internas
+    N = gradoN;
+    M = gradoM;
+    bi = bcoef;
+    ai = acoef;
+    //new double permite crear una matriz del tamaño especificado. Según chatGPT, para asignar memoria dinámicamente,luego es necesario usar el destructor
+    u = new double[N];
+    e = new double[N + 1];
+
+    //Poner a ceros las entradas
+    for( int i = 0; i < N; i++){
+        u[i] = 0.0;
+        e[i] = 0.0;
+    }
+    //entradasAnteriores tiene un valor extra de u lo inicializo a 0 aquí
+    e[N] = 0.0;
+}
+//Lo pongo pq sale en la solucion y chatGPT dice que al usar memoria dinámica es necesario liberarla usando el destructor, entiendo que esto no lo exigirá
+Regulador::~Regulador(){
+    delete[] u;
+    delete[] e;
+}
+double Regulador::actuacion(double entrada){
+    //Desplazo los valores de las entradas
+    for (int i = N; i > 0; --i) {
+        e[i] = e[i-1];
+    }
+    //Actualizo la entrada actual
+    e[0] = entrada;
+    //Desplazo los valores de actuacion
+    for(int i = N-1; i > 0; i-- ){
+        u[i] = u[i-1];
+    }
+
+    //Calculo actuacion actual restablezco a 0 para poder hacer la suma
+    u[0] = 0.0;
+    for(int i = 0; i < M+1;i++){
+        //[N - M + i] Se calcula desde n-m hasta n *Ver imagen en la solución*
+        u[0] += bi[i] * e[N - M + i];
+    }
+    for(int i = 0; i < N ; i++){
+        u[0] -= ai[i] * u[i];
+    }
+
+    //Devuelvo el resultado
+    return u[0];
+}
+
+```
+main.cpp (lo da el)
+
+```cpp
+#include <iostream>
+#include "regulador.h"
+using namespace std;
+void esperaPeriodo(){};
+double mideSalida(){};
+double referencia(){};
+void aplicaActuacion(double actuacion){};
+
+double b[] = {0.35, 0.889, 1.5}; // Coeficientes del polinomio del numerador
+double a[] = {0.99, 0.863, 0.6}; // Coeficientes del polinomio del denominador
+int m = 2; // Grado del polinomio del numerador
+int n = 3; // Grador del polinomio del denominador
+
+int main() {
+
+    Regulador regulador(m, n, b, a); // Crea un regulador digital SISO
+    while(1) {
+        esperaPeriodo(); // Bloquea hasta siguiente período de muestreo
+        double e = referencia() - mideSalida(); // Obtiene la señal de error
+        double u = regulador.actuacion(e); // Calcula la actuación a partir del error
+        aplicaActuacion(u); // Aplica la actuación a la planta
+    }
+    return 0;
+}
+
+```
+
