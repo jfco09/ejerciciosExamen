@@ -501,8 +501,8 @@ int main()
             consignas[i] = consignas[i + 1];
             salidas[i] = salidas[i + 1];
         }
-        consignas[319] = consigna;
-        salidas[319] = y;
+        consignas[479] = consigna;
+        salidas[479] = y;
         if(nPeriodos == 10){
             nPeriodos = 0;
             if(nPuntos < 480){
