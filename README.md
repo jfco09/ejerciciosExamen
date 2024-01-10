@@ -471,7 +471,7 @@ public:
 int main()
 {
     double T = 0.1,Kp = 0.1, Ti = 10;
-    Temporizador t(1/T);
+    Temporizador t(100);
     LCD lcd;
 
     double e = 0.0;
