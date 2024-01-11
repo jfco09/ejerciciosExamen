@@ -1380,4 +1380,203 @@ int main() {
 }
 
 ```
+## Ejercicio 25
+main.cpp:
+```cpp
+#include <iostream>
+
+using namespace std;
+double entradaAnalogica(int nEntrada){};
+void salidaAnalogica(int nSalida, double valor){};
+void establecePrioridad(int prioridad);
+class Temporizador{
+public:
+    int t;
+    Temporizador(int periodo){
+        t = periodo;
+    };
+    void espera();
+};
+
+class Canal
+{
+public:
+    void *paquete;
+    Canal() {}
+    void envia(void * p, int n){
+        paquete = p;
+    };
+    int recibe(void *p);
+};
+
+class Controlador
+{
+private:
+    int nControlador;
+    double Kp, Ti, T;
+    int parametrosOk = 0;
+    int consignaOk = 0;
+    double R = 0.0;
+    double a = 0.0;
+    double uk = 0.0, uk1 = 0.0;
+    double ek = 0.0;
+    double entrada;
+    double envio[2];
+public:
+    Controlador(int n) {
+        nControlador = n;
+    };
+    void recibeParametros(double Kp,double Ti,double T){
+        //Asigno variables externas a las internas
+        this->Kp = Kp;
+        this->Ti = Ti;
+        this->T = T;
+        parametrosOk = 1;
+    };
+    void recibeConsigna(double consigna){
+        consignaOk = 1;
+        R = consigna;
+    };
+    void actuacion(){
+        entrada = entradaAnalogica(nControlador);
+        //Calculo parametro a
+        a = Kp * (1 + T / Ti);
+        //Calculo el error
+        ek = R - entrada;
+        //Calculo el valor de la actuacion actual
+        uk = uk1 + a * ek - Kp * ek;
+        //Guardo el valor para la siguiente ejecucion
+        uk1 = uk;
+        salidaAnalogica(nControlador,uk);
+    }
+    double *peticionDatos(){
+        envio[0] = uk;
+        envio[1] = entradaAnalogica(nControlador);
+        return envio;
+    }
+    int actuacionOk(){
+        return consignaOk && parametrosOk;
+    }
+    double obtenerT(){
+        return T;
+    }
+};
+//Crear los 5 controladores de forma global
+Controlador PI[5] = {0, 1, 2, 3, 4};
+
+//hilo de comunicaciones
+void comunicaciones(){
+    establecePrioridad(2);
+    //Crear el canal de comunicaciones
+    Canal canal;
+    //mensaje como max 5 bytes
+    uint8_t paquete[5];
+    while(1){
+        //Espera a un mensaje y lo guarda en paquete
+        canal.recibe(paquete);
+        //Guarda el tipo de mensaje
+        int tipoMsj = paquete[0];
+        //Guarda el contorlador al que hace referencia
+        int nControlador = paquete[1];
+
+        switch (tipoMsj) {
+        case 0:
+            //Paso los parametros al controlador nControlador
+            PI[nControlador].recibeParametros(paquete[2], paquete[3],paquete[4]);
+            break;
+        case 1:
+            //Le paso la consigna
+            PI[nControlador].recibeConsigna(paquete[2]);
+            break;
+        case 2:
+            //Envio los parametros pedidos
+            canal.envia(PI[nControlador].peticionDatos(), sizeof(PI[nControlador].peticionDatos()));
+            break;
+        }
+    }
+}
+//Hilo para Controlador 0
+void PI0(){
+    establecePrioridad(1);
+    //Espera a que el PI 0 se pueda actuar
+    while(!PI[0].actuacionOk()){
+        salidaAnalogica(0,0.0);
+    }
+    double T = PI[0].obtenerT();
+    Temporizador t0(T*1000);
+    while(1){
+        t0.espera();
+        PI[1].actuacion();
+    }
+}
+//Hilo para Controlador 1
+void PI1(){
+    //Espera a que el PI 1 se pueda actuar
+    while(!PI[1].actuacionOk()){
+        salidaAnalogica(1,0.0);
+    }
+    double T = PI[1].obtenerT();
+    Temporizador t1(T*1000);
+    while(1){
+        t1.espera();
+        PI[1].actuacion();
+    }
+}
+//Hilo para Controlador 2
+void PI2(){
+    establecePrioridad(1);
+    //Espera a que el PI 2 se pueda actuar
+    while(!PI[2].actuacionOk()){
+        salidaAnalogica(2,0.0);
+    }
+    double T = PI[2].obtenerT();
+    Temporizador t2(T*1000);
+    while(1){
+        t2.espera();
+        PI[1].actuacion();
+    }
+}
+//Hilo para Controlador 3
+void PI3(){
+    establecePrioridad(1);
+    //Espera a que el PI 3 se pueda actuar
+    while(!PI[3].actuacionOk()){
+        salidaAnalogica(3,0.0);
+    };
+    double T = PI[3].obtenerT();
+    Temporizador t3(T*1000);
+    while(1){
+        t3.espera();
+        PI[3].actuacion();
+    }
+}
+//Hilo para Controlador 4
+void PI4(){
+    establecePrioridad(1);
+    //Espera a que el PI 4 se pueda actuar
+    while(!PI[4].actuacionOk()){
+        salidaAnalogica(4,0.0);
+    }
+    double T = PI[4].obtenerT();
+    Temporizador t4(T*1000);
+    while(1){
+        t4.espera();
+        PI[4].actuacion();
+    }
+}
+
+int main()
+{
+    while(1){
+        //Llamada a los hilos
+        comunicaciones();
+        PI0();
+        PI1();
+        PI2();
+        PI3();
+        PI4();
+    }
+    return 0;
+}
+```
 
