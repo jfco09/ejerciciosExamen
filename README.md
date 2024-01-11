@@ -401,7 +401,7 @@ void autotuningPID(double actuacion,double * Kp, double *Ki, double *Kd){
             estable = 1;
             for (int i = 0; i < 5; i++){
                 //Si algún valor difiere, la planta no está estable
-                if(fabs(P[i] - mediaP) > 0.2 || fabs(A[i] - mediaA) > 0.2 ){
+                if(fabs(P[i] - mediaP) > 0.02 || fabs(A[i] - mediaA) > 0.02 ){
                     estable = 0;
                 }
             }
