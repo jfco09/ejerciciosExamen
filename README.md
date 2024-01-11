@@ -1226,44 +1226,49 @@ int main()
 #include <stdio.h>
 
 int ventana;
-double y[]; //Mi señal
-double yk []; //Salida
+double y[1]; //Mi señal
+double yk [1]; //Salida
 int N;
 int main()
 {
     if (ventana == 5){
         //Para los primeros valores la señal filtrada es igual a la original
-        yk [0] = y[0];
-        yk [1] = y[0];
-        for(int i = 2; i < N - 2; i++){
-            yk [i] = 1/35 * ( - 3 * y[i -2] + 12 * y[i -1] +17 * y[i] +12 * y[i + 1] - 3 * y[i +2]);
+        for(int i = 0; i < N; i++){
+            if(i < 2){
+                yk [i] = 1/35 * ( - 3 * y[0] + 12 * y[0] +17 * y[i] +12 * y[i + 1] - 3 * y[i +2]);
+            }
+            if(i >= (N-2)){
+                yk [i] = 1/35 * ( - 3 * y[i - 2] + 12 * y[i - 1] +17 * y[i] +12 * y[N - 1] - 3 * y[N - 1]);
+            }
+            if(i >= 2 && i <= (N-3)){
+                yk [i] = 1/35 * ( - 3 * y[i - 2] + 12 * y[i - 1] +17 * y[i] +12 * y[i + 1] - 3 * y[i + 2 ]);
+
+            }
         }
-        //A partir de N-2 la señal filtrada es igual a la original
-        yk [N-2] = y[N-1];
-        yk [N-1] = y[N-1];
+
     }
     if (ventana == 7){
         for(int i = 0; i <3; i++ ){
-            yk [i] = y[0];
+            yk [i] = 1/21 * (-2 * y[0] + 3 * y[0] + 6 * y[0] + 7 * y[i] -2 * y[i+3] + 3 * y[i+2] + 6 * y[i+1]);
         }
         for(int i = 3; i < N - 3; i++){
             yk [i] = 1/21 * (-2 * y[i-3] + 3 * y[i-2] + 6 * y[i-1] + 7 * y[i] -2 * y[i+3] + 3 * y[i+2] + 6 * y[i+1]);
         }
         for(int i = N - 3; i < N; i++ ){
-            yk [i] = y[N - 1];
+            yk [i] = 1/21 * (-2 * y[i-3] + 3 * y[i-2] + 6 * y[i-1] + 7 * y[i] -2 * y[N-1] + 3 * y[N-1] + 6 * y[N-1]);
         }
 
 
     }
     if (ventana == 9){
         for(int i = 0; i < 4; i++ ){
-            yk [i] = y[0];
+            yk[i] = 1/231 * ( -21 * y[0] + 14 * y[0] + 39 * y[0] + 54* y[0] + 59 * y[i]  -21 * y[i + 4] + 14 * y[i + 3] + 39 * y[i + 2] + 54* y[i + 1]);
         }
         for(int i = 4; i < N - 4; i++){
             yk[i] = 1/231 * ( -21 * y[i - 4] + 14 * y[i - 3] + 39 * y[i - 2] + 54* y[i - 1] + 59 * y[i]  -21 * y[i + 4] + 14 * y[i + 3] + 39 * y[i + 2] + 54* y[i + 1]);
         }
         for(int i = N - 4; i < N; i++ ){
-            yk [i] = y[N - 1];
+            yk[i] = 1/231 * ( -21 * y[i - 4] + 14 * y[i - 3] + 39 * y[i - 2] + 54* y[i - 1] + 59 * y[i]  -21 * y[N-1] + 14 * y[N-1] + 39 * y[N-1] + 54* y[N-1]);
         }
 
     }
