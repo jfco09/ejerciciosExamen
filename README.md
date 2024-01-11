@@ -1244,26 +1244,26 @@ int main()
     }
     if (ventana == 7){
         for(int i = 0; i <3; i++ ){
-            yk [i] = y[i];
+            yk [i] = y[0];
         }
         for(int i = 3; i < N - 3; i++){
             yk [i] = 1/21 * (-2 * y[i-3] + 3 * y[i-2] + 6 * y[i-1] + 7 * y[i] -2 * y[i+3] + 3 * y[i+2] + 6 * y[i+1]);
         }
         for(int i = N - 3; i < N; i++ ){
-            yk [i] = y[i];
+            yk [i] = y[N - 1];
         }
 
 
     }
     if (ventana == 9){
         for(int i = 0; i < 4; i++ ){
-            yk [i] = y[i];
+            yk [i] = y[0];
         }
         for(int i = 4; i < N - 4; i++){
             yk[i] = 1/231 * ( -21 * y[i - 4] + 14 * y[i - 3] + 39 * y[i - 2] + 54* y[i - 1] + 59 * y[i]  -21 * y[i + 4] + 14 * y[i + 3] + 39 * y[i + 2] + 54* y[i + 1]);
         }
         for(int i = N - 4; i < N; i++ ){
-            yk [i] = y[i];
+            yk [i] = y[N - 1];
         }
 
     }
