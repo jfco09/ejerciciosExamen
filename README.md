@@ -1234,12 +1234,12 @@ int main()
     if (ventana == 5){
         //Para los primeros valores la señal filtrada es igual a la original
         yk [0] = y[0];
-        yk [0] = y[0];
+        yk [1] = y[0];
         for(int i = 2; i < N - 2; i++){
             yk [i] = 1/35 * ( - 3 * y[i -2] + 12 * y[i -1] +17 * y[i] +12 * y[i + 1] - 3 * y[i +2]);
         }
         //A partir de N-2 la señal filtrada es igual a la original
-        yk [N-2] = y[N-2];
+        yk [N-2] = y[N-1];
         yk [N-1] = y[N-1];
     }
     if (ventana == 7){
